@@ -1,0 +1,625 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>DnA Global</title>
+
+        <link href="jquery-ui-1.13.2.custom/jquery-ui.css" rel="stylesheet">
+
+		<style type="text/css">
+.highcharts-figure,
+.highcharts-data-table table {
+    min-width: 620px;
+    max-width: 900px;
+    margin: 1em auto;
+}
+
+.highcharts-data-table table {
+    font-family: Verdana, sans-serif;
+    border-collapse: collapse;
+    border: 1px solid #ebebeb;
+    margin: 10px auto;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: #555;
+}
+
+.highcharts-data-table th {
+    font-weight: 600;
+    padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+    padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+.highcharts-data-table tr:hover {
+    background: #f1f7ff;
+}
+
+#container {
+    min-width: 600px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.highcharts-tooltip table th {
+    padding-bottom: 0.2em;
+    border-bottom: 1px solid silver;
+}
+
+
+table {
+	border-collapse: collapse;
+    font-family: Tahoma, Geneva, sans-serif;
+}
+table td {
+	padding: 15px;
+}
+table thead td {
+	background-color: #54585d;
+	color: #ffffff;
+	font-weight: bold;
+	font-size: 13px;
+	border: 1px solid #54585d;
+}
+table tbody td {
+	color: #636363;
+	border: 1px solid #dddfe1;
+    font-weight: bold;
+	font-size: 13px;
+    justify-content: space-around;
+}
+table tbody tr {
+	background-color: #f9fafb;
+}
+table tbody tr:nth-child(odd) {
+	background-color: #ffffff;
+}
+		</style>
+	</head>
+	<body>
+<script src="../../code/highcharts.js"></script>
+<script src="../../code/modules/networkgraph.js"></script>
+<script src="../../code/modules/exporting.js"></script>
+<script src="../../code/modules/accessibility.js"></script>
+
+<script src="jquery-ui-1.13.2.custom/external/jquery/jquery.js"></script>
+<script src="jquery-ui-1.13.2.custom/jquery-ui.js"></script>
+
+
+<div id="Container_Project_Description">
+
+  
+
+    
+
+	
+	
+	<div style="position: fixed; width: 320px; left: 50px; top: 5%; padding: 1.2em" class="ui-widget ui-front ui-widget-content ui-corner-all">
+		
+        
+        <p id="Project_Description" > 
+
+            <table>
+                <thead>
+                    <tr>
+                        <td>Concepto</td>
+                        <td>Valor</td>
+
+                    </tr>
+                
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="Project_Label">Proyecto</td>
+                            <td id="Project_Value"></td>
+    
+                        </tr>
+                        <tr>
+                        <td id="Project_Description_Label">Descripción</td>
+                        <td id="Project_Description_Value"></td>
+    
+                        </tr>
+                    <tr>
+                    <td id="Functional_Area_Label">Area Funcional</td>
+                    <td id="Functional_Area_Value"></td>
+
+                    </tr>
+                    <tr>
+                    <td id="Sources_Label">Fuentes</td>
+                    <td id="Sources_Value"></td>
+
+                    </tr>
+                    <tr>
+                    <td id="Size_Storage_Label">Tamaño de almacenamiento</td>
+                    <td id="Size_Storage_Value"></td>
+
+                    </tr>
+                    <tr>
+                    <td id="Users_Label">Numero de usuarios</td>
+                    <td id="Users_Value"></td>
+                    </tr>
+
+                    <tr>
+                    <td id="Environment_Label">Ambiente</td>
+                    <td id="Environment_Value"></td>
+                    </tr>
+
+                    <tr>
+                    <td id="Team_Member_Label">Equipo</td>
+                    <td id="Team_Member_Value"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </p>
+
+    </div>
+
+
+ 
+
+
+
+
+
+</div>
+
+
+<form style="top:10px; right:10px; position:fixed; z-index:100;">
+    <div id="radioset">
+        <input type="radio" id="radio1" name="radio" checked="checked"><label for="radio1">Linaje</label>
+        <input type="radio" id="radio2" name="radio"><label for="radio2">Liberado a usuarios finales</label>
+        <input type="radio" id="radio3" name="radio"><label for="radio3">Pase a productivo</label>
+    </div>
+</form>
+
+<figure class="highcharts-figure">
+    <div id="container"></div>
+    <p id="" class="highcharts-description">
+        Las fuentes de información y proyectos son Desarrollados por DnA Global en apoyo de DnA Locales.
+    </p>
+</figure>
+
+
+
+<script type="text/javascript">
+
+//Jquery
+$( "#radioset" ).buttonset();
+
+// Add the nodes option through an event call. We want to start with the parent
+// item and apply separate colors to each child element, then the same color to
+// grandchildren.
+Highcharts.addEvent(
+    Highcharts.Series,
+    'afterSetOptions',
+    function (e) {
+        var colors = Highcharts.getOptions().colors,
+            i = 0,
+            nodes = {};
+
+        if (
+            this instanceof Highcharts.Series.types.networkgraph &&
+            e.options.id === 'lang-tree'
+        ) {
+            e.options.data.forEach(function (link) {
+
+                var Sources = 35;
+                var Color_Parents = colors[1] ;
+
+                if (link[0] === 'RTM') {
+                    nodes['RTM'] = {
+                        id: 'RTM',
+                        marker: {
+                            radius: 25,
+                            fillColor: Color_Parents,
+                            symbol: 'circle' //Other possible values are 'circle', 'square','diamond', 'triangle' and 'triangle-down'.
+                            
+        
+                        }
+                    };
+                    nodes[link[1]] = {
+                        id: link[1],
+                        marker: {
+                            radius: 10,
+                            symbol: 'triangle'
+                        },
+                        color: colors[2]
+                    };
+                } else if (nodes[link[0]] && nodes[link[0]].color) {
+                    nodes[link[1]] = {
+                        id: link[1],
+                        color: nodes[link[0]].color,
+                        marker: {
+                            radius: 10,
+                            //symbol: 'triangle'
+                        },
+                    };
+                }
+
+
+                if (link[0] === 'ORACLE CLOUD') {
+                    nodes['ORACLE CLOUD'] = {
+                        id: 'ORACLE CLOUD',
+                        marker: {
+                            radius: Sources,
+                            fillColor: Color_Parents,
+                            symbol: 'circle'
+                        }
+                    };
+                    nodes[link[1]] = {
+                        id: link[1],
+                        marker: {
+                            radius: 10,
+                            symbol: 'triangle'
+                        },
+                        color: colors[3]
+                    };
+                } else if (nodes[link[0]] && nodes[link[0]].color) {
+                    nodes[link[1]] = {
+                        id: link[1],
+                        color: nodes[link[0]].color,
+                        marker: {
+                            radius: 10,
+                            //symbol: 'triangle'
+                        },
+                    };
+                }
+
+                if (link[0] === 'WMS') {
+                    nodes['WMS'] = {
+                        id: 'WMS',
+                        marker: {
+                            radius: 10,
+                            fillColor: Color_Parents,
+                            symbol: 'circle'
+                        }
+                    };
+                    nodes[link[1]] = {
+                        id: link[1],
+                        marker: {
+                            radius: 10,
+                            symbol: 'triangle'
+                        },
+                        color: colors[4]
+                    };
+                } else if (nodes[link[0]] && nodes[link[0]].color) {
+                    nodes[link[1]] = {
+                        id: link[1],
+                        color: nodes[link[0]].color,
+                        marker: {
+                            radius: 10,
+                            //symbol: 'triangle'
+                        },
+                    };
+                }
+
+
+
+                if (link[0] === 'OTM') {
+                    nodes['OTM'] = {
+                        id: 'OTM',
+                        marker: {
+                            radius: 10,
+                            fillColor: Color_Parents,
+                            symbol: 'circle'
+                        }
+                    };
+                    nodes[link[1]] = {
+                        id: link[1],
+                        marker: {
+                            radius: 10,
+                            symbol: 'triangle'
+                        },
+                        color: colors[5]
+                    };
+                } else if (nodes[link[0]] && nodes[link[0]].color) {
+                    nodes[link[1]] = {
+                        id: link[1],
+                        color: nodes[link[0]].color,
+                        marker: {
+                            radius: 10,
+                            //symbol: 'triangle'
+                        },
+                    };
+                }
+
+
+                if (link[0] === 'PARSABLE') {
+                    nodes['PARSABLE'] = {
+                        id: 'PARSABLE',
+                        marker: {
+                            radius: 15,
+                            fillColor: Color_Parents,
+                            symbol: 'circle'
+                        }
+                    };
+                    nodes[link[1]] = {
+                        id: link[1],
+                        marker: {
+                            radius: 10,
+                            symbol: 'triangle'
+                        },
+                        color: colors[5]
+                    };
+                } else if (nodes[link[0]] && nodes[link[0]].color) {
+                    nodes[link[1]] = {
+                        id: link[1],
+                        color: nodes[link[0]].color,
+                        marker: {
+                            radius: 10,
+                            //symbol: 'triangle'
+                        },
+                    };
+                }
+
+
+                if (link[0] === 'SOCIAL MEDIA') {
+                    nodes['SOCIAL MEDIA'] = {
+                        id: 'SOCIAL MEDIA',
+                        marker: {
+                            radius: 15,
+                            fillColor: Color_Parents,
+                            symbol: 'circle'
+                        }
+                    };
+                    nodes[link[1]] = {
+                        id: link[1],
+                        marker: {
+                            radius: 10,
+                            symbol: 'triangle'
+                        },
+                        color: colors[5]
+                    };
+                } else if (nodes[link[0]] && nodes[link[0]].color) {
+                    nodes[link[1]] = {
+                        id: link[1],
+                        color: nodes[link[0]].color,
+                        marker: {
+                            radius: 10,
+                            //symbol: 'triangle'
+                        },
+                    };
+                }
+
+
+
+
+            });
+
+            e.options.nodes = Object.keys(nodes).map(function (id) {
+                return nodes[id];
+            });
+        }
+    }
+);
+
+
+var Array_Project = [
+{"ID":"RTM","Type":"Fuente","Description":"Route to Market","Functional_Area":"Ventas","Sources":"IVY,MC1,EBEST,BOOS","Size":"2 TB","Users":"1,200","Environment":"QA","Team":"Alberto Olvera <br> Fernando Urbina <br> Lilia Anaid Cervantes"},
+{"ID":"ORACLE CLOUD","Type":"Fuente","Description":"Oracle Fusion Applications es un conjunto de aplicaciones creadas en Oracle Cloud que incluyen aplicaciones basadas en la nube para la planificación de recursos empresariales","Functional_Area":"Operaciones","Sources":"Oracle Fusion","Size":"3.5 TB","Users":"1,800","Environment":"QA","Team":"Roberto Soto <br> Julieta Mitre , Oscar Landeros <br> Violeta"},
+{"ID":"WMS","Type":"Fuente","Description":"Un sistema de gestión de almacenes (WMS) es una solución de software que ofrece visibilidad de todo el inventario y gestiona las operaciones de logística de la cadena de suministro, desde el centro de distribución hasta la estantería de la tienda.","Functional_Area":"Logistica","Sources":"Oracle WMS","Size":" .10 TB","Users":"20","Environment":"DEV","Team":"Sergio Tapia <br> Oscar Landeros <br> Lilia Anaid Cervantes"},
+{"ID":"OTM","Type":"Fuente","Description":"Gestiona toda la actividad de transporte en toda la cadena de suministro global. Combinando la facilidad de uso con las capacidades líderes del sector, Oracle Transportation Management te permite dirigir tus operaciones logísticas de forma más eficiente, reducir los costos de flete y optimizar los niveles de servicio.","Functional_Area":"Logistica","Sources":"Oracle OTM","Size":" .10 TB","Users":"20","Environment":"DEV","Team":"Sergio Tapia <br> Oscar Landeros <br> Lilia Anaid Cervantes"},
+{"ID":"SOCIAL MEDIA","Type":"Fuente","Description":"Redes Sociales: Facebook , Instagram, Google ADS","Functional_Area":"Marketing","Sources":"Redes Sociales","Size":" .4 TB","Users":"200","Environment":"QA","Team":"Alberto Olvera <br> Julieta Mitre <br> Lilia Anaid Cervantes"},
+{"ID":"PARSABLE","Type":"Fuente","Description":"Parsable convierte los procedimientos estáticos en papel en instrucciones interactivas para dispositivos móviles, entregando información nunca antes vista sobre el trabajo de las personas en cada proceso, cada turno y cada día.","Functional_Area":"Operaciones, Auditoria y Logistica","Sources":"Parsable","Size":" .4 TB","Users":"400","Environment":"QA","Team":"Sergio Tapia <br> Alan Franco <br> Lilia Anaid Cervantes"},
+{"ID":"Track 3 Factory to Retail","Type":"Proyecto","Description":"Proyecto End to End Construcción de una aplicación que ayude a toda la cadena de valor para el abasto y control de existencias.","Functional_Area":"Comercial","Sources":"Oracle Cloud, RTM, AritmetikaASN, WMS","Size":" .4 TB","Users":"1200","Environment":"QA","Team":"Daniel Cervantes <br> Fermamdo Urbina <br> Lilia Anaid Cervantes"},
+
+
+
+
+
+];
+
+console.table(Array_Project);
+
+var Graph = Highcharts.chart('container', {
+    chart: {
+        type: 'networkgraph',
+        height: '100%'
+    },
+    legend:{ enabled:true },
+    exporting: {
+    enabled: false
+    },
+    credits: {
+    enabled: false
+    },
+
+    tooltip: {
+        //backgroundColor: '#FCFFC5',
+        shared: true,
+        useHTML: true,
+        headerFormat: '<table><tr><th colspan="2">{point.key}</th></tr>',
+        pointFormat: '<tr><td style="color: {series.color}">{series.name} </td>' +
+            '<td style="text-align: right"><b>{point.y} EUR</b></td></tr>',
+        footerFormat: '</table>',
+        valueDecimals: 2,
+
+        //formatter: function() {
+      //return customData[this.point.index];
+        //}
+    },
+
+
+    title: {
+        
+        text: 'DNA Global'
+    },
+    subtitle: {
+        text: 'Linaje de Fuentes de datos y Proyectos'
+    },
+    plotOptions: {
+        networkgraph: {
+            keys: ['from', 'to'],
+            layoutAlgorithm: {
+                enableSimulation: true,
+                friction: -0.9,
+                //initialPositions: 'right',
+           
+            
+            },
+            marker: {
+                    radius: 10,
+                    lineWidth: 1,
+                    symbol: 'triangle'
+                }
+        },
+
+        events: {
+						click: function(evt) {
+							//this.chart.myTooltip.refresh(evt.point, evt);
+                            alert('Prueba');
+						},
+						mouseOut: function() {
+							//this.chart.myTooltip.hide();
+						}                     
+					},
+                    
+        series: {
+            point: {
+                events: {
+                    mouseOver: function () {
+                        var chart = this.series.chart;
+                       
+                       // document.getElementById("Project_Description").innerHTML = Graph.series[0].data[22].fromNode.id;
+
+                       //document.getElementById("Project_Description").innerHTML = this.id;
+                       Show_Information(this.id);
+                    //console.log(this);
+                    }
+                }
+            },
+            events: {
+                mouseOut: function () {
+                    if (this.chart.lbl) {
+                       // this.chart.lbl.hide();
+                    }
+                }
+            }
+        }
+
+
+
+    },
+    series: [{
+        accessibility: {
+            enabled: true
+        },
+        dataLabels: {
+            enabled: true,
+            linkFormat: ''
+        },
+        id: 'lang-tree',
+        data: [
+            ['RTM', 'Asistente Comercial'],
+            
+            ['RTM', 'Track 3 Factory to Retail'],
+            ['RTM', 'FILL RATE'],
+            
+            ['RTM', 'Track 1 Traditional Sales'],
+            ['RTM', 'MDM Catalogos de Rutas'],
+            ['RTM', 'Perfect Order'],
+            ['RTM', 'Global Services Remanentes'],
+            
+            ['DEEP', 'Costo de Servir'],
+           // ['DEEP', 'KAMS End Game'],
+
+            ['Asistente Comercial', 'DEEP'],
+
+            ['DEEP', 'Connection Center'],
+
+            ['Costo de Servir', 'KAMS End Game'],
+
+            ['ORACLE CLOUD', 'Track 3 Factory to Retail'],
+            
+            ['ORACLE CLOUD', 'Indicadores GL'],
+            ['ORACLE CLOUD', 'Indicadores AP'],
+            ['ORACLE CLOUD', 'Indicadores AR'],
+            ['ORACLE CLOUD', 'Indicadores PO'],
+            ['ORACLE CLOUD', 'Indicadores HCM'],
+            ['ORACLE CLOUD', 'Costo de Producir'],
+            ['ORACLE CLOUD', 'DEEP SUPPLY CHAIN'],
+            ['ORACLE CLOUD', 'Costo de Servir'],
+            ['ORACLE CLOUD', 'JEDOX'],
+
+            ['Indicadores GL','Monthly Balance'],
+            ['Indicadores GL','Account Analysis Details'],
+            ['Indicadores GL','Account Analysis Global'],
+            ['Indicadores GL','Trial Balance'],
+
+            ['Indicadores AR','Transaction Detail'],
+            ['Indicadores AR','Account Details'],
+            ['Indicadores AR','Customer Account'],
+
+            ['Indicadores AP','Payments Approval History'],
+            ['Indicadores AP','Accrual Reconciliation'],
+            ['Indicadores AP','Gestión de Información de Proveedores'],
+
+
+            ['Indicadores PO','Purchase Order'],
+            ['Indicadores PO','ORDERS COUPA'],
+
+            ['Indicadores HCM','Consolidación HCM'],
+            
+
+
+            ['WMS', 'Track 3 Factory to Retail'],
+            ['WMS', 'Reportes Auditoria'],
+            ['WMS', 'Reporte Vida Útil'],
+
+
+            ['OTM', 'DEEP LOGISTICA'],
+            ['OTM', 'Reportes Auditoria'],
+
+            ['PARSABLE', 'Inputs'],
+            ['PARSABLE', 'Issues'],
+            ['PARSABLE', 'Completion'],
+            ['PARSABLE', 'Deviation'],
+
+            ['SOCIAL MEDIA', 'Connection Center'],
+        ]
+    }]
+});
+
+function Show_Information(ID_Search)
+{
+
+    var Index = Array_Project.find(e => e.ID == ID_Search);
+    var S_P = Index.Type="Fuente"?"Fuente":"Proyecto";
+
+    $("#Project_Label").text(S_P);
+
+    $("#Project_Value").text(Index.ID);
+    $("#Project_Description_Value").text(Index.Description);
+    $("#Functional_Area_Value").text(Index.Functional_Area);
+    $("#Sources_Value").text(Index.Sources);
+    $("#Size_Storage_Value").text(Index.Size);
+    $("#Users_Value").text(Index.Users);
+    $("#Environment_Value").text(Index.Environment);
+    $("#Team_Member_Value").html(Index.Team);
+
+
+
+    console.log(Index.Size);
+
+}
+
+		</script>
+	</body>
+</html>
